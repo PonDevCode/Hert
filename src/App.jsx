@@ -9,10 +9,14 @@ function App() {
     if (!canvas) return
 
     const ctx = canvas.getContext('2d')
-    const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(navigator.userAgent.toLowerCase())
-    const koef = isMobile ? 0.5 : 1
-    let width = canvas.width = koef * window.innerWidth
-    let height = canvas.height = koef * window.innerHeight
+    const ratio = window.devicePixelRatio || 1
+
+    let width = canvas.width = window.innerWidth * ratio
+    let height = canvas.height = window.innerHeight * ratio
+    canvas.style.width = window.innerWidth + 'px'
+    canvas.style.height = window.innerHeight + 'px'
+    ctx.scale(ratio, ratio)
+
     const rand = Math.random
 
     ctx.fillStyle = "rgba(0,0,0,1)"
@@ -29,8 +33,7 @@ function App() {
     ]
 
     const pointsOrigin = []
-    const dr = isMobile ? 0.3 : 0.1
-    for (let i = 0; i < Math.PI * 2; i += dr) {
+    for (let i = 0; i < Math.PI * 2; i += 0.1) {
       pointsOrigin.push(scaleAndTranslate(heartPosition(i), 210, 13, 0, 0))
       pointsOrigin.push(scaleAndTranslate(heartPosition(i), 150, 9, 0, 0))
       pointsOrigin.push(scaleAndTranslate(heartPosition(i), 90, 5, 0, 0))
@@ -42,17 +45,17 @@ function App() {
     const pulse = (kx, ky) => {
       for (let i = 0; i < pointsOrigin.length; i++) {
         targetPoints[i] = [
-          kx * pointsOrigin[i][0] + width / 2,
-          ky * pointsOrigin[i][1] + height / 2
+          kx * pointsOrigin[i][0] + width / (2 * ratio),
+          ky * pointsOrigin[i][1] + height / (2 * ratio)
         ]
       }
     }
 
-    const traceCount = isMobile ? 20 : 50
+    const traceCount = ratio > 1.5 ? 20 : 50
     const e = []
     for (let i = 0; i < heartPointsCount; i++) {
-      const x = rand() * width
-      const y = rand() * height
+      const x = rand() * (width / ratio)
+      const y = rand() * (height / ratio)
       e[i] = {
         vx: 0,
         vy: 0,
@@ -61,7 +64,7 @@ function App() {
         q: ~~(rand() * heartPointsCount),
         D: 2 * (i % 2) - 1,
         force: 0.2 * rand() + 0.7,
-        f: `hsla(0,${~~(40 * rand() + 60)}%,${~~(60 * rand() + 20)}%,.3)`,
+        f: `hsla(0,${~~(40 * rand() + 60)}%,${~~(60 * rand() + 20)}%,.5)`,
         trace: Array.from({ length: traceCount }, () => ({ x, y }))
       }
     }
@@ -122,8 +125,12 @@ function App() {
     loop()
 
     const onResize = () => {
-      width = canvas.width = koef * window.innerWidth
-      height = canvas.height = koef * window.innerHeight
+      width = canvas.width = window.innerWidth * ratio
+      height = canvas.height = window.innerHeight * ratio
+      canvas.style.width = window.innerWidth + 'px'
+      canvas.style.height = window.innerHeight + 'px'
+      ctx.setTransform(1, 0, 0, 1, 0, 0) // Reset transform
+      ctx.scale(ratio, ratio)
       ctx.fillStyle = "rgba(0,0,0,1)"
       ctx.fillRect(0, 0, width, height)
     }
@@ -138,5 +145,3 @@ function App() {
 }
 
 export default App
-
-
